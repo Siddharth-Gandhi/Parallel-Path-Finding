@@ -8,7 +8,7 @@ void print_distance_matrix(vector<vector<int>> matrix) {
         for (int j = 0; j < n; j++) {
             cout << matrix[i][j] << " ";
         }
-        cout << endl;
+        cout << std::endl;
     }
 }
 
@@ -26,10 +26,10 @@ vector<vector<int>> generate_random_distance_matrix(int N) {
     return matrix;
 }
 
-int main() {
-    int N = 5;
-    cout << "Enter the size of distance matrix (N x N): ";
-    cin >> N;
-    vector<vector<int>> matrix = generate_random_distance_matrix(N);
-    print_distance_matrix(matrix);
-}
+// int main() {
+//     int N = 5;
+//     cout << "Enter the size of distance matrix (N x N): ";
+//     cin >> N;
+//     vector<vector<int>> matrix = generate_random_distance_matrix(N);
+//     print_distance_matrix(matrix);
+// }
