@@ -2,6 +2,7 @@
     "files.associations": {
         "*.xml": "html",
         "*.svg": "html",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "chrono": "cpp"
     }
 }
