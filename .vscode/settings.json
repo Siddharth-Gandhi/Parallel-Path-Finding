@@ -3,6 +3,9 @@
         "*.xml": "html",
         "*.svg": "html",
         "ostream": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "iosfwd": "cpp",
+        "*.tcc": "cpp",
+        "fstream": "cpp"
     }
 }

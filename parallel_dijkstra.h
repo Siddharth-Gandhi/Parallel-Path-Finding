@@ -2,134 +2,23 @@
 #include <omp.h>
 
 using namespace std;
-using namespace std::chrono;
 
-// int main(int argc, char **argv);
 vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix);
-void findNearestNode(int startIdx, int endIdx, vector<int> &minimumDistances,
-                     vector<bool> &connected, int *threadMinimumDistance,
-                     int *threadNearestNode);
-vector<vector<int>> initializeData(vector<string> &cities);
-void updateMinimumDistance(int startIdx, int endIdx, int nearestNode,
-                           vector<bool> &connected,
-                           vector<vector<int>> &distanceMatrix,
-                           vector<int> &minimumDistances);
-void printPath(vector<int> parent, int j, vector<string> cities);
+
+void find_nearest_data(int startIdx, int endIdx, vector<int> &minimumDistances,
+                       vector<bool> &connected, int *threadMinimumDistance,
+                       int *threadNearestNode);
+
+void update_minimum_distance(int startIdx, int endIdx, int nearestNode,
+                             vector<bool> &connected,
+                             vector<vector<int>> &distanceMatrix,
+                             vector<int> &minimumDistances);
 
 /* 
 
 Main method which calls the required functions to get data, do computations on
 the data and print the results.
 
-Params: number of arguments, argument list
-Returns: integer
-
-*/
-// int main(int argc, char **argv) {
-//     int i;
-//     int infinite = 2147483647;
-//     int j;
-
-//     cout << "----- Welcome to Travel Partner -----\n";
-
-//     vector<string> cities;
-//     vector<vector<int>> distanceMatrix = initializeData(cities);
-
-//     int nodeCount = distanceMatrix.size();
-
-//     cout << "List of Available cities under this plan: \n";
-//     for (int i = 0; i < nodeCount; ++i) {
-//         cout << "\t" << i + 1 << ". " << cities[i] << "\n";
-//     }
-
-//     cout << "Which city would you like to start from?\n";
-//     cout << "Enter the corresponding row number: ";
-//     int cityIdx;
-//     cin >> cityIdx;
-//     --cityIdx;
-//     cout << "You have chosen '" << cities[cityIdx] << "' to start with.\n";
-
-//     string temp = cities[cityIdx];
-//     cities[cityIdx] = cities[0];
-//     cities[0] = temp;
-//     for (int i = 0; i < nodeCount; ++i) {
-//         int tempVal = distanceMatrix[i][cityIdx];
-//         distanceMatrix[i][cityIdx] = distanceMatrix[i][0];
-//         distanceMatrix[i][0] = tempVal;
-//     }
-
-//     for (int i = 0; i < nodeCount; ++i) {
-//         int tempVal = distanceMatrix[cityIdx][i];
-//         distanceMatrix[cityIdx][i] = distanceMatrix[0][i];
-//         distanceMatrix[0][i] = tempVal;
-//     }
-
-//     cout << "\n";
-//     cout << "---------- Distance matrix ----------\n";
-//     cout << "\n";
-//     cout << "  " << setw(3) << "  " << setw(15) << "Maharashtra";
-//     for (i = 0; i < nodeCount; i++) {
-//         cout << "  " << setw(cities[i].length()) << cities[i];
-//     }
-//     cout << "\n";
-//     for (i = 0; i < nodeCount; i++) {
-//         cout << i + 1 << "." << setw(3) << "  " << setw(15) << cities[i];
-//         for (j = 0; j < nodeCount; j++) {
-//             if (distanceMatrix[i][j] == infinite) {
-//                 cout << "  " << setw(cities[j].length()) << "Inf";
-//             } else {
-//                 cout << "  " << setw(cities[j].length()) << distanceMatrix[i][j];
-//             }
-//         }
-//         cout << "\n";
-//     }
-
-//     cout << "\nWhich cities would you like to consider in your travel plan?\n";
-//     cout << "Enter the corresponding row numbers separated by comma from the "
-//          << "above matrix: ";
-//     vector<int> toVisit;
-//     string visitIdx;
-//     cin >> visitIdx;
-//     stringstream ss(visitIdx);
-//     while (ss.good()) {
-//         string substr;
-//         getline(ss, substr, ',');
-//         stringstream dist(substr);
-//         int x;
-//         dist >> x;
-//         --x;
-//         toVisit.push_back(x);
-//     }
-
-//     cout << "You would like to visit:\n";
-//     for (int i = 0; i < toVisit.size(); i++) {
-//         cout << "\t" << (i + 1) << ". " << cities[toVisit[i]] << "\n";
-//     }
-
-//     vector<int> parent(nodeCount);
-//     parent[0] = -1;
-
-//     vector<int> minimumDistances = parallel_dijkstra(distanceMatrix, parent);
-
-//     cout << "\n";
-//     cout << "----- The Best Travel Plans for your desired cities is given below"
-//          << " -----\n";
-//     cout << "Here are the shortest paths to travel to your desired destinations "
-//          << "spending less time travelling and more time enjoying your stay!\n";
-//     // cout << "The Minimum distances from " << cities[0] << " To -\n";
-
-//     for (i = 0; i < toVisit.size(); i++) {
-//         cout << "\t" << i + 1 << ". " << cities[0] << " -> " << cities[toVisit[i]]
-//              << " = " << minimumDistances[toVisit[i]] << " KM\n";
-//         cout << "\tTourist places on your way: " << cities[0] << " -> ";
-//         printPath(parent, toVisit[i], cities);
-//         cout << "END\n";
-//     }
-
-//     return 0;
-// }
-
-/* 
 
 Function which calculates the shortest path using Dijkstra's parallel algorithm.
 
@@ -140,8 +29,8 @@ Params: distance matrix, parent vector reference
 Returns: Minimum distances vector
 
 */
-vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix) {
-    omp_set_num_threads(12);
+vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix, int num_threads) {
+    omp_set_num_threads(num_threads);
 
     int i;
     int infinite = 2147483647;
@@ -173,51 +62,52 @@ vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix) {
 
     // start = std::chrono::system_clock::now();
 
-#pragma omp parallel for private(threadFirst, threadID, threadLast, threadMinDistance, threadNearestNode, threadIterationCount) \
+#pragma omp parallel private(threadFirst, threadID, threadLast, threadMinDistance, threadNearestNode, threadIterationCount) \
     shared(connected, minDistance, minimumDistances, nearestNode, numOfThreads, distanceMatrix)
-    // {
-    // printf("%d\n", omp_get_num_threads());
-    // threadID = omp_get_thread_num();
-    // numOfThreads = omp_get_num_threads();
-    // threadFirst = (threadID * nodeCount) / numOfThreads;
-    // threadLast = ((threadID + 1) * nodeCount) / numOfThreads - 1;
+    {
+        // printf("%d\n", omp_get_num_threads());
+        threadID = omp_get_thread_num();
+        numOfThreads = omp_get_num_threads();
+        threadFirst = (threadID * nodeCount) / numOfThreads;
+        threadLast = ((threadID + 1) * nodeCount) / numOfThreads - 1;
 
-    //  Attach one more node on each iteration.
-    for (threadIterationCount = 1; threadIterationCount < nodeCount; threadIterationCount++) {
-        /*
+        //  Attach one more node on each iteration.
+
+        for (threadIterationCount = 1; threadIterationCount < nodeCount; threadIterationCount++) {
+            /*
         Before we compare the results of each thread, set the shared variable
         MD to a big value.  Only one thread needs to do this.
       */
 #pragma omp single
-        {
-            minDistance = infinite;
-            nearestNode = -1;
-        }
-        /*
+            {
+                minDistance = infinite;
+                nearestNode = -1;
+            }
+            /*
         Each thread finds the nearest unconnected node in its part of the
         graph.
         Some threads might have no unconnected nodes left.
       */
-        findNearestNode(threadFirst, threadLast, minimumDistances, connected,
-                        &threadMinDistance, &threadNearestNode);
-        /*
+            find_nearest_data(threadFirst, threadLast, minimumDistances, connected,
+                              &threadMinDistance, &threadNearestNode);
+            /*
         In order to determine the minimum of all the MY_MD's, we must insist
         that only one thread at a time execute this block!
       */
 #pragma omp critical
-        {
-            if (threadMinDistance < minDistance) {
-                minDistance = threadMinDistance;
-                nearestNode = threadNearestNode;
+            {
+                if (threadMinDistance < minDistance) {
+                    minDistance = threadMinDistance;
+                    nearestNode = threadNearestNode;
+                }
             }
-        }
-        /*
+            /*
         This barrier means that ALL threads have executed the critical
         block, and therefore MD and MV have the correct value.  Only then
         can we proceed.
       */
 #pragma omp barrier
-        /*
+            /*
         If MV is -1, then NO thread found an unconnected node, so we're done
         early.
         OpenMP does not like to BREAK out of a parallel region, so we'll just
@@ -227,50 +117,33 @@ vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix) {
         Otherwise, we connect the nearest node.
       */
 #pragma omp single
-        {
-            if (nearestNode != -1) {
-                connected[nearestNode] = true;
+            {
+                if (nearestNode != -1) {
+                    connected[nearestNode] = true;
+                }
             }
-        }
-        /*
+            /*
         Again, we don't want any thread to proceed until the value of
         CONNECTED is updated.
       */
 #pragma omp barrier
-        /*
+            /*
         Now each thread should update its portion of the MIND vector,
         by checking to see whether the trip from 0 to MV plus the step
         from MV to a node is closer than the current record.
       */
-        if (nearestNode != -1) {
-            updateMinimumDistance(threadFirst, threadLast, nearestNode, connected,
-                                  distanceMatrix, minimumDistances);
-        }
-        /*
+            if (nearestNode != -1) {
+                update_minimum_distance(threadFirst, threadLast, nearestNode, connected,
+                                        distanceMatrix, minimumDistances);
+            }
+            /*
         Before starting the next step of the iteration, we need all threads
         to complete the updating, so we set a BARRIER here.
       */
 #pragma omp barrier
+        }
+        //  Once all the nodes have been connected, we can exit.
     }
-    //  Once all the nodes have been connected, we can exit.
-    // }
-    // end = std::chrono::system_clock::now();
-
-    // std::chrono::duration<double> elapsed_seconds = end - start;
-    // std::time_t end_time = std::chrono::system_clock::to_time_t(end);
-
-    // std::cout << "finished computation at " << std::ctime(&end_time)
-    //           << "elapsed time: " << elapsed_seconds.count() << "s\n";
-
-    // double end = omp_get_wtime();
-    // double timeTaken = end - start;
-    // cout << "Total time taken for parallel Dijkstra computation = "
-    //      << timeTaken * 1000 << "microseconds \n";
-    // auto stop = high_resolution_clock::now();
-
-    // auto timeTaken = duration_cast<microseconds>(stop - start).count();
-    // cout << "Total time taken for serial Dijkstra computation = " << timeTaken;
-    // cout << " microseconds\n";
     return minimumDistances;
 }
 
@@ -286,9 +159,9 @@ Params: start index, end index, minimum distances vector, connected vector,
 Returns: void
 
 */
-void findNearestNode(int startIdx, int endIdx, vector<int> &minimumDistances,
-                     vector<bool> &connected,
-                     int *threadMinimumDistance, int *threadNearestNode) {
+void find_nearest_data(int startIdx, int endIdx, vector<int> &minimumDistances,
+                       vector<bool> &connected,
+                       int *threadMinimumDistance, int *threadNearestNode) {
     int i;
     int infinite = 2147483647;
 
@@ -314,94 +187,6 @@ Params: cities vector reference
 Returns: Distance matrix
 
 */
-vector<vector<int>> initializeData(vector<string> &cities) {
-    int infinite = 2147483647;
-
-    ifstream inStatesFile;
-    inStatesFile.open(".\\data\\States.csv");
-    if (!inStatesFile.is_open()) {
-        cerr << "States File not found!\n";
-        exit(1);
-    }
-    vector<string> states;
-    string state;
-    while (!inStatesFile.eof()) {
-        getline(inStatesFile, state, '\n');
-        if (!inStatesFile.good()) {
-            break;
-        }
-        states.push_back(state);
-    }
-    inStatesFile.close();
-    cout << "List of Available States for Travel: \n";
-    for (int i = 1; i < states.size(); i++) {
-        cout << "\t" << i << ". " << states[i] << "\n";
-    }
-    cout << "We also have Pan India Travel option\n";
-    cout << "Choose a state where you are planning to travel with ";
-    cout << "the corresponding row number or Choose '0' if you plan to travel "
-         << "across India: ";
-    int stateNum;
-    cin >> stateNum;
-    if (stateNum == 0) {
-        cout << "You choose to travel Pan India\n";
-    } else if (stateNum < states.size()) {
-        cout << "You choose to go to: " << states[stateNum] << "\n";
-    } else {
-        cerr << "Option out of bound\n";
-        exit(0);
-    }
-    cout << "----- Welcome to " << states[stateNum] << " Tourism -----\n";
-    ifstream inFile;
-
-    inFile.open(".\\data\\" + states[stateNum] + "\\" +
-                states[stateNum] + ".csv");
-    if (!inFile.is_open()) {
-        cerr << "File not found!\n";
-        exit(1);
-    }
-
-    string cityCSV;
-    inFile >> cityCSV;
-    stringstream citySS(cityCSV);
-    string first;
-    getline(citySS, first, ',');
-    while (citySS.good()) {
-        string city;
-        getline(citySS, city, ',');
-        cities.push_back(city);
-    }
-    string row;
-
-    vector<vector<int>> distanceMatrix;
-
-    while (!inFile.eof()) {
-        inFile >> row;
-        vector<int> distances;
-        if (!inFile.good()) {
-            break;
-        }
-        stringstream ss(row);
-        string firstCity;
-        getline(ss, firstCity, ',');
-        while (ss.good()) {
-            string substr;
-            getline(ss, substr, ',');
-            stringstream dist(substr);
-            int x;
-            dist >> x;
-            if (x == -1) {
-                distances.push_back(infinite);
-            } else {
-                distances.push_back(x);
-            }
-        }
-        distanceMatrix.push_back(distances);
-    }
-    inFile.close();
-
-    return distanceMatrix;
-}
 
 /* 
 
@@ -414,10 +199,10 @@ Params: start index, end index, nearest node, connected vector, distance
 Returns: void
 
 */
-void updateMinimumDistance(int startIdx, int endIdx, int nearestNode,
-                           vector<bool> &connected,
-                           vector<vector<int>> &distanceMatrix,
-                           vector<int> &minimumDistances) {
+void update_minimum_distance(int startIdx, int endIdx, int nearestNode,
+                             vector<bool> &connected,
+                             vector<vector<int>> &distanceMatrix,
+                             vector<int> &minimumDistances) {
     int i;
     int infinite = 2147483647;
 
@@ -437,19 +222,18 @@ void updateMinimumDistance(int startIdx, int endIdx, int nearestNode,
     return;
 }
 
-/* 
+// int main() {
+//     cout << "Parallel implementation of Dijkstra's Algorithm\n";
+//     vector<vector<int>> graph = {{0, 4, 0, 0, 0, 0, 0, 8, 0},
+//                                  {4, 0, 8, 0, 0, 0, 0, 11, 0},
+//                                  {0, 8, 0, 7, 0, 4, 0, 0, 2},
+//                                  {0, 0, 7, 0, 9, 14, 0, 0, 0},
+//                                  {0, 0, 0, 9, 0, 10, 0, 0, 0},
+//                                  {0, 0, 4, 14, 10, 0, 2, 0, 0},
+//                                  {0, 0, 0, 0, 0, 2, 0, 1, 6},
+//                                  {8, 11, 0, 0, 0, 0, 1, 0, 7},
+//                                  {0, 0, 2, 0, 0, 0, 6, 7, 0}};
 
-Function to print the path from starting node to the given node.
-
-Params: parent vector, destination node, cities vector
-Returns: void
-
-*/
-void printPath(vector<int> parent, int j, vector<string> cities) {
-    if (parent[j] == -1)
-        return;
-
-    printPath(parent, parent[j], cities);
-
-    cout << cities[j] << " -> ";
-}
+//     parallel_dijkstra(graph, 12);
+//     return 0;
+// }
