@@ -5,24 +5,20 @@ using namespace std;
 
 vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix);
 
-void find_nearest_data(int startIdx, int endIdx, vector<int> &minimumDistances,
-                       vector<bool> &connected, int *threadMinimumDistance,
-                       int *threadNearestNode);
+void find_nearest_data(int startIdx, int endIdx, vector<int> &minimumDistances, vector<bool> &connected,
+                       int *threadMinimumDistance, int *threadNearestNode);
 
-void update_minimum_distance(int startIdx, int endIdx, int nearestNode,
-                             vector<bool> &connected,
-                             vector<vector<int>> &distanceMatrix,
-                             vector<int> &minimumDistances);
+void update_minimum_distance(int startIdx, int endIdx, int nearestNode, vector<bool> &connected,
+                             vector<vector<int>> &distanceMatrix, vector<int> &minimumDistances);
 
-/* 
+/*
 
 Main method which calls the required functions to get data, do computations on
 the data and print the results.
 
-
 Function which calculates the shortest path using Dijkstra's parallel algorithm.
 
-It uses OpenMP constructs to parallelize the computation and returns the 
+It uses OpenMP constructs to parallelize the computation and returns the
 minimum distance vector
 
 Params: distance matrix, parent vector reference
@@ -56,13 +52,8 @@ vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix, int num_threa
         minimumDistances[i] = distanceMatrix[0][i];
     }
 
-    // double start = omp_get_wtime();
-    // auto start = high_resolution_clock::now();
-    // std::chrono::time_point<std::chrono::system_clock> start, end;
-
-    // start = std::chrono::system_clock::now();
-
-#pragma omp parallel private(threadFirst, threadID, threadLast, threadMinDistance, threadNearestNode, threadIterationCount) \
+#pragma omp parallel private(threadFirst, threadID, threadLast, threadMinDistance, threadNearestNode, \
+                             threadIterationCount)                                                    \
     shared(connected, minDistance, minimumDistances, nearestNode, numOfThreads, distanceMatrix)
     {
         // printf("%d\n", omp_get_num_threads());
@@ -88,8 +79,8 @@ vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix, int num_threa
         graph.
         Some threads might have no unconnected nodes left.
       */
-            find_nearest_data(threadFirst, threadLast, minimumDistances, connected,
-                              &threadMinDistance, &threadNearestNode);
+            find_nearest_data(threadFirst, threadLast, minimumDistances, connected, &threadMinDistance,
+                              &threadNearestNode);
             /*
         In order to determine the minimum of all the MY_MD's, we must insist
         that only one thread at a time execute this block!
@@ -133,8 +124,8 @@ vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix, int num_threa
         from MV to a node is closer than the current record.
       */
             if (nearestNode != -1) {
-                update_minimum_distance(threadFirst, threadLast, nearestNode, connected,
-                                        distanceMatrix, minimumDistances);
+                update_minimum_distance(threadFirst, threadLast, nearestNode, connected, distanceMatrix,
+                                        minimumDistances);
             }
             /*
         Before starting the next step of the iteration, we need all threads
@@ -147,11 +138,11 @@ vector<int> parallel_dijkstra(vector<vector<int>> &distanceMatrix, int num_threa
     return minimumDistances;
 }
 
-/* 
+/*
 
-Function to find the nearest unconnected node for the current thread. 
+Function to find the nearest unconnected node for the current thread.
 
-It updates the current thread's minimum distance and unconnected node found by 
+It updates the current thread's minimum distance and unconnected node found by
 the thread (if any) .
 
 Params: start index, end index, minimum distances vector, connected vector,
@@ -159,8 +150,7 @@ Params: start index, end index, minimum distances vector, connected vector,
 Returns: void
 
 */
-void find_nearest_data(int startIdx, int endIdx, vector<int> &minimumDistances,
-                       vector<bool> &connected,
+void find_nearest_data(int startIdx, int endIdx, vector<int> &minimumDistances, vector<bool> &connected,
                        int *threadMinimumDistance, int *threadNearestNode) {
     int i;
     int infinite = 2147483647;
@@ -176,7 +166,7 @@ void find_nearest_data(int startIdx, int endIdx, vector<int> &minimumDistances,
     return;
 }
 
-/* 
+/*
 
 Function to take the state as user input and fetch the required distances data
 from data/{stateName}.csv file.
@@ -188,33 +178,28 @@ Returns: Distance matrix
 
 */
 
-/* 
+/*
 
 Function to update the minimum distance in the shared minimum distances vector.
 
 Also updates the parent node in the parent list.
 
-Params: start index, end index, nearest node, connected vector, distance 
+Params: start index, end index, nearest node, connected vector, distance
         matrix, minimum distances vector, parent vector
 Returns: void
 
 */
-void update_minimum_distance(int startIdx, int endIdx, int nearestNode,
-                             vector<bool> &connected,
-                             vector<vector<int>> &distanceMatrix,
-                             vector<int> &minimumDistances) {
+void update_minimum_distance(int startIdx, int endIdx, int nearestNode, vector<bool> &connected,
+                             vector<vector<int>> &distanceMatrix, vector<int> &minimumDistances) {
     int i;
     int infinite = 2147483647;
 
     for (i = startIdx; i <= endIdx; i++) {
         if (!connected[i]) {
             if (distanceMatrix[nearestNode][i] < infinite) {
-                if (minimumDistances[nearestNode] +
-                        distanceMatrix[nearestNode][i] <
-                    minimumDistances[i]) {
+                if (minimumDistances[nearestNode] + distanceMatrix[nearestNode][i] < minimumDistances[i]) {
                     // parent[i] = nearestNode;
-                    minimumDistances[i] = minimumDistances[nearestNode] +
-                                          distanceMatrix[nearestNode][i];
+                    minimumDistances[i] = minimumDistances[nearestNode] + distanceMatrix[nearestNode][i];
                 }
             }
         }

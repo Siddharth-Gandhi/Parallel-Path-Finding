@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     plt.xticks(rotation=25)
     plt.xlabel('Number of nodes (N)')
-    plt.ylabel('Time Taken (ms)')
+    plt.ylabel('Time Taken (us)')
     plt.title(
         'Dijkstra\'s Algortihm - Serial vs Parallel Execution Time ', fontsize=20)
     plt.grid()
