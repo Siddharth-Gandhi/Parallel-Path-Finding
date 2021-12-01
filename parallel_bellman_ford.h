@@ -40,7 +40,7 @@ vector<int> parallel_bellman_ford(vector<vector<int>> matrix, int p) {
     vector<int> mat(n * n);
     vector<int> dist(n);
     int local_start[p], local_end[p];
-    bool has_negative_cycle = false;
+    // bool has_negative_cycle = false;
     for (int i = 0; i < n; i++) {
         for (int j = 0; j < n; j++) {
             mat[convert_dimension_2D_1D_(i, j, n)] = matrix[i][j];
@@ -121,7 +121,7 @@ vector<int> parallel_bellman_ford(vector<vector<int>> matrix, int p) {
                 }
             }
         }
-        has_negative_cycle = has_change;
+        // has_negative_cycle = has_change;
     }
     return dist;
     // step 4: free memory (if any)

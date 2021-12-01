@@ -10,9 +10,9 @@ using namespace std;
 using namespace std::chrono;
 
 const int COUT_PRECISION = 16;
-const int START_N = 100;
-const int END_N = 1000;
-const int STEP_N = 100;
+const int START_N = 500;
+const int END_N = 25000;
+const int STEP_N = 500;
 const vector<int> num_threads = {2, 4, 6, 8, 10, 12};
 
 template <typename T>
@@ -31,8 +31,10 @@ int main() {
     ofstream bellman_ford_time;
     cout << setprecision(COUT_PRECISION);
 
-    bellman_ford_time.open("bellman_ford_time.csv");  // for [500, 25000] with increment of 500
-    // bellman_ford_time.open("bellman_ford_time_small.csv"); // for [10,500] with increment of 10
+    // bellman_ford_time.open("bellman_ford_time.csv");  // for [500, 25000] with increment of 500
+    // bellman_ford_time.open("bellman_ford_time_small.csv");  // for [10,500] with increment of 10
+    // bellman_ford_time.open("sample_b.csv");  // for [10,500] with increment of 10
+    bellman_ford_time.open("test.csv");  // for [10,500] with increment of 10
 
     bellman_ford_time << "Number of nodes (N),Serial Time (us)";
     for (int num_thread : num_threads) {
@@ -70,6 +72,7 @@ int main() {
             bellman_ford_time << "," << duration.count();
             // cout << "The shortest path with Bellman Ford (Parallel with " << num_thread << " threads) is: " <<
             // parallel_dijkstra_path << endl;
+            assert(serial_shortest_path == parallel_dijkstra_path);
         }
         bellman_ford_time << endl;
     }

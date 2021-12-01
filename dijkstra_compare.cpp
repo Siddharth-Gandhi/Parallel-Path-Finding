@@ -31,8 +31,10 @@ int main() {
     ofstream dijkstra_time;
     cout << setprecision(COUT_PRECISION);
 
-    dijkstra_time.open("dijkstra_time.csv");  // for [500, 25000] with increment of 500
-    // dijkstra_time.open("dijkstra_time_small.csv"); // for [10, 500] with increment of 10
+    // dijkstra_time.open("dijkstra_time.csv");  // for [500, 25000] with increment of 500
+    // dijkstra_time.open("dijkstra_time_small.csv");  // for [10, 500] with increment of 10
+    dijkstra_time.open("sample_d.csv");  // for [500, 25000] with increment of 500
+    // dijkstra_time.open("test.csv");  // for [500, 25000] with increment of 500
 
     dijkstra_time << "Number of nodes (N),Serial Time (us)";
     for (int num_thread : num_threads) {
@@ -69,6 +71,7 @@ int main() {
             dijkstra_time << "," << duration.count();
             // cout << "The shortest path with Dijkstra (Parallel with " << num_thread << " threads) is: " <<
             // parallel_dijkstra_path << endl;
+            assert(serial_shortest_path == parallel_dijkstra_path);
         }
         dijkstra_time << endl;
     }

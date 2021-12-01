@@ -32,7 +32,7 @@ vector<int> serial_bellman_ford(vector<vector<int>> matrix) {
             mat[convert_dimension_2D_1D(i, j, n)] = matrix[i][j];
         }
     }
-    bool has_negative_cycle = false;
+    // bool has_negative_cycle = false;
     for (int i = 0; i < n; i++) {
         dist[i] = INF;
     }
@@ -67,7 +67,7 @@ vector<int> serial_bellman_ford(vector<vector<int>> matrix) {
             int weight = mat[convert_dimension_2D_1D(u, v, n)];
             if (weight < INF) {
                 if (dist[u] + weight < dist[v]) {  // if we can relax one more step, then we find a negative cycle
-                    has_negative_cycle = true;
+                    // has_negative_cycle = true;
                     return dist;
                 }
             }

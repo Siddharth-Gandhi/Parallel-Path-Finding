@@ -13,9 +13,6 @@ void update_minimum_distance(int startIdx, int endIdx, int nearestNode, vector<b
 
 /*
 
-Main method which calls the required functions to get data, do computations on
-the data and print the results.
-
 Function which calculates the shortest path using Dijkstra's parallel algorithm.
 
 It uses OpenMP constructs to parallelize the computation and returns the
@@ -165,18 +162,6 @@ void find_nearest_data(int startIdx, int endIdx, vector<int> &minimumDistances, 
     }
     return;
 }
-
-/*
-
-Function to take the state as user input and fetch the required distances data
-from data/{stateName}.csv file.
-
-Updates the cities list and constructs the distance matrix.
-
-Params: cities vector reference
-Returns: Distance matrix
-
-*/
 
 /*
 
